@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "tool-stack",
+    "dev": "tool-stack",
+    "prod": "toolstack-prod"
+  }
+}
