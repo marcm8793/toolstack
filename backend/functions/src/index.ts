@@ -1,3 +1,4 @@
+/* eslint-disable object-curly-spacing */
 /**
  * Import function triggers from their respective submodules:
  *
