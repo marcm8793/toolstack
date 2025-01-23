@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 /* eslint-disable object-curly-spacing */
-import { UserRecord } from "firebase-admin/auth";
+import { ListUsersResult, UserRecord } from "firebase-admin/auth";
 import * as admin from "firebase-admin";
 import { resolve } from "path";
 import { readFile } from "fs/promises";
@@ -34,7 +34,7 @@ async function setAdminRole(uid: string, callerUid: string | null = null) {
       const existingAdmins = await admin
         .auth()
         .listUsers()
-        .then((listUsersResult: any) =>
+        .then((listUsersResult: ListUsersResult) =>
           listUsersResult.users.filter(
             (user: UserRecord) => user.customClaims && user.customClaims.admin
           )
