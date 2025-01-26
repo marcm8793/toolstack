@@ -290,7 +290,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ toolId }) => {
   }
 
   return (
-    <div className="container w-full sm:w-10/12 md:w-8/12 lg:w-6/12 mt-4 sm:mt-6 md:mt-8 px-2 sm:px-0">
+    <div className="container w-full max-w-3xl mx-auto sm:w-10/12 md:w-8/12 lg:w-6/12 mt-4 sm:mt-6 md:mt-8 px-4 sm:px-0">
       <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 dark:text-gray-200">
         Comments
       </h2>
