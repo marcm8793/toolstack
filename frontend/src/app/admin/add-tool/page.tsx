@@ -33,6 +33,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 import { addNewTool } from "@/lib/firebase-functions/firebaseToolFuctions";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 const toolSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
@@ -495,7 +496,7 @@ const AddToolPage = () => {
 
             {logoPreview ? (
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src={logoPreview}
                   alt="Logo preview"
                   className="w-16 h-16 object-contain"
