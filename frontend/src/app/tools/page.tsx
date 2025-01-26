@@ -3,9 +3,7 @@ import { DevToolsTable } from "@/components/tooltable/devtools-table";
 async function getInitialData() {
   const response = await fetch(
     // TODO: change to use env variable
-    `${
-      process.env.VERCEL_PROJECT_PRODUCTION_URL || "http://localhost:3000"
-    }/api/tools`,
+    `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/tools || http://localhost:3000/api/tools`,
     {
       next: { revalidate: 60 }, // Cache for 1 hour
     }
