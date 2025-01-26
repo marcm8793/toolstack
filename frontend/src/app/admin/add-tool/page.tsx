@@ -327,6 +327,7 @@ const AddToolPage = () => {
       setNewBadge("");
       setLogoFile(null);
       setLogoPreview(null);
+      router.refresh();
     } catch (error) {
       toast({
         title: "Error",
@@ -500,6 +501,8 @@ const AddToolPage = () => {
                   src={logoPreview}
                   alt="Logo preview"
                   className="w-16 h-16 object-contain"
+                  width={64}
+                  height={64}
                 />
                 <Button
                   type="button"
