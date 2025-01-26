@@ -1,6 +1,6 @@
 import { DevToolsTable } from "@/components/tooltable/devtools-table";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 async function getInitialData() {
   try {
@@ -9,7 +9,7 @@ async function getInitialData() {
       : "http://localhost:3000";
 
     const response = await fetch(`${baseUrl}/api/tools`, {
-      cache: "force-cache",
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {
