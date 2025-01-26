@@ -5,6 +5,7 @@ import { PostHogProvider } from "@/providers/posthog-provider";
 import Header from "@/components/navbar/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <PostHogProvider>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -80,6 +81,7 @@ export default function RootLayout({
                 </div>
               </main>
               <Footer />
+              <Toaster />
             </div>
           </ThemeProvider>
         </body>
