@@ -50,11 +50,6 @@ export async function GET() {
       ...doc.data(),
     }));
 
-    // Add logging to debug the data
-    console.log("Categories:", categories);
-    console.log("Ecosystems:", ecosystems);
-    console.log("Sample tool:", tools[0]);
-
     return NextResponse.json({
       tools,
       categories,
