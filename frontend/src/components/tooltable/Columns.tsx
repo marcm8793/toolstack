@@ -136,9 +136,13 @@ export const columns = ({
     cell: ({ row }) => {
       const badges: string[] = row.getValue("badges");
       return (
-        <div className="flex space-x-2">
+        <div className="flex flex-nowrap items-center gap-1 overflow-x-auto">
           {badges.slice(0, 2).map((badge, index) => (
-            <Badge key={index} variant="secondary">
+            <Badge
+              key={index}
+              variant="secondary"
+              className="whitespace-nowrap"
+            >
               {badge}
             </Badge>
           ))}
