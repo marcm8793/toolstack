@@ -11,12 +11,17 @@ const Navbar = () => {
   const router = useRouter();
 
   return (
-    <div className="flex space-x-2">
+    <div className="flex space-x-2 items-center justify-center px-4 sm:px-8">
       <ModeToggle />
       {user ? (
         <UserNav />
       ) : (
-        <Button onClick={() => router.push("/signin")}>Sign In</Button>
+        <Button
+          onClick={() => router.push("/signin")}
+          className="dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold rounded-md"
+        >
+          Sign In
+        </Button>
       )}
     </div>
   );

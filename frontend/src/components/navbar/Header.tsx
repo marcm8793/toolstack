@@ -7,7 +7,7 @@ import SearchBar from "../SearchBar";
 
 const Header = () => {
   return (
-    <div className="border-b-2 border-neutral-200 py-6">
+    <div className="border-b-2 border-neutral-200 py-6 px-1 sm:px-4">
       <div className="container mx-auto flex justify-between items-center space-x-2">
         <Link
           href="/"
