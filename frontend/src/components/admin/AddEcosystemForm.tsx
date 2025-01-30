@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addNewEcosystem } from "@/lib/firebase-functions/firebaseEcosystemFunctions";
-
-const ecosystemSchema = z.object({
-  id: z.string().min(1, "Ecosystem ID is required"),
-  name: z.string().min(1, "Ecosystem name is required"),
-});
-
-type EcosystemFormData = z.infer<typeof ecosystemSchema>;
+import { EcosystemFormData } from "@/validation/ecosystemSchema";
+import { ecosystemSchema } from "@/validation/ecosystemSchema";
 
 const AddEcosystemForm = () => {
   const { toast } = useToast();

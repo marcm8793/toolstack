@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addNewCategory } from "@/lib/firebase-functions/firebaseCategoryFunctions";
-
-const categorySchema = z.object({
-  id: z.string().min(1, "Category ID is required"),
-  name: z.string().min(1, "Category name is required"),
-});
-
-type CategoryFormData = z.infer<typeof categorySchema>;
+import { categorySchema } from "@/validation/categorySchema";
+import { CategoryFormData } from "@/validation/categorySchema";
 
 const AddCategoryForm = () => {
   const { toast } = useToast();
