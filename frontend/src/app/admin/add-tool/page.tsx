@@ -285,12 +285,20 @@ const AddToolPage = () => {
   const onSubmit = async (data: ToolFormData) => {
     if (!isAdmin) return;
     setIsSubmitting(true);
+
     try {
+      // Trim the tool name
+      const trimmedData = {
+        ...data,
+        name: data.name.trim(),
+      };
+
+      // Managing logo upload
       let logo_url = "";
 
       // Upload logo if a file is selected
       if (logoFile) {
-        const filename = `tool-logos/${Date.now()}_${data.name
+        const filename = `tool-logos/${Date.now()}_${trimmedData.name
           .replace(/\s+/g, "-")
           .toLowerCase()}`;
         const storageRef = ref(storage, filename);
@@ -298,8 +306,9 @@ const AddToolPage = () => {
         logo_url = await getDownloadURL(storageRef);
       }
 
+      // Remove unused variables
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { noGithubRepo, logo_image, ...restData } = data;
+      const { noGithubRepo, logo_image, ...restData } = trimmedData;
 
       const toolData: NewToolData = {
         ...restData,
@@ -307,15 +316,17 @@ const AddToolPage = () => {
         category: doc(
           db,
           "categories",
-          data.category
+          trimmedData.category
         ) as DocumentReference<Category>,
         ecosystem: doc(
           db,
           "ecosystems",
-          data.ecosystem
+          trimmedData.ecosystem
         ) as DocumentReference<EcoSystem>,
-        github_link: data.noGithubRepo ? null : data.github_link,
-        github_stars: data.noGithubRepo ? null : data.github_stars,
+        github_link: trimmedData.noGithubRepo ? null : trimmedData.github_link,
+        github_stars: trimmedData.noGithubRepo
+          ? null
+          : trimmedData.github_stars,
       };
 
       await addNewTool(toolData);
@@ -323,7 +334,18 @@ const AddToolPage = () => {
         title: "Success",
         description: "Tool added successfully",
       });
-      reset();
+      reset({
+        name: "",
+        description: "",
+        category: "",
+        ecosystem: "",
+        noGithubRepo: false,
+        github_link: null,
+        github_stars: null,
+        website_url: "",
+        logo_image: null,
+        badges: [],
+      });
       setNewBadge("");
       setLogoFile(null);
       setLogoPreview(null);
