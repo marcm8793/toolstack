@@ -10,18 +10,20 @@ import { readFile } from "fs/promises";
 
 dotenv.config();
 
-const db = admin.firestore();
+let db: admin.firestore.Firestore;
 
 const typesenseClient = new Typesense.Client({
   nodes: [
     {
-      host: process.env.TYPESENSE_PROD_HOST || "",
-      port: parseInt(process.env.TYPESENSE_PROD_PORT || ""),
-      protocol: process.env.TYPESENSE_PROD_PROTOCOL || "",
+      host: process.env.TYPESENSE_HOST || "",
+      port: parseInt(process.env.TYPESENSE_PORT || ""),
+      protocol: process.env.TYPESENSE_PROTOCOL || "",
     },
   ],
-  apiKey: process.env.TYPESENSE_PROD_API_KEY || "",
+  apiKey: process.env.TYPESENSE_API_KEY || "",
   connectionTimeoutSeconds: 2,
+  retryIntervalSeconds: 1,
+  numRetries: 3,
 });
 
 const schema: CollectionCreateSchema = {
@@ -42,7 +44,7 @@ const schema: CollectionCreateSchema = {
 
 async function createCollectionIfNotExists() {
   try {
-    const serviceAccountPath = resolve(__dirname, "../../pkFirebase-prod.json");
+    const serviceAccountPath = resolve(__dirname, "../../pkFirebase-dev.json");
     const serviceAccount = JSON.parse(
       await readFile(serviceAccountPath, "utf-8")
     );
@@ -50,20 +52,23 @@ async function createCollectionIfNotExists() {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-    // await typesenseClient.collections("dev_tools").retrieve();
-    // console.log("Collection 'dev_tools' already exists");
+
+    db = admin.firestore();
+
+    console.log("Testing Typesense connection...");
+    const health = await typesenseClient.health.retrieve();
+    console.log(`Typesense health: ${JSON.stringify(health)}`);
+
     await typesenseClient.collections("dev_tools").delete();
-    console.log("Deleted existing 'dev_tools' collection");
+    console.log("Deleted existing collection");
   } catch (error) {
-    if (
-      error instanceof Error &&
-      "httpStatus" in error &&
-      error.httpStatus === 404
-    ) {
+    if (error instanceof Typesense.Errors.ObjectNotFound) {
       await typesenseClient.collections().create(schema);
-      console.log("Created 'dev_tools' collection");
+      console.log("Created new collection");
     } else {
-      console.error("Unexpected error:", error);
+      console.error("Connection failed. Verify:");
+      console.log("- TYPESENSE_HOST:", process.env.TYPESENSE_HOST);
+      console.log("- TYPESENSE_PORT:", process.env.TYPESENSE_PORT);
       throw error;
     }
   }
@@ -74,17 +79,24 @@ async function syncDataToTypesense() {
 
   const toolsRef = db.collection("tools");
   const snapshot = await toolsRef.get();
-  let syncedCount = 0;
+
+  const batchSize = 50;
+  let documents = [];
 
   for (const doc of snapshot.docs) {
     const data = doc.data();
 
-    // Fetch category and ecosystem data
-    const categoryDoc = await data.category.get();
-    const ecosystemDoc = await data.ecosystem.get();
+    if (!data.category || !data.ecosystem) {
+      console.warn(`Skipping document ${doc.id} - missing category/ecosystem`);
+      continue;
+    }
 
-    // Format the data for Typesense
-    const typesenseDoc = {
+    const [categoryDoc, ecosystemDoc] = await Promise.all([
+      data.category.get(),
+      data.ecosystem.get(),
+    ]);
+
+    documents.push({
       id: doc.id,
       name: data.name,
       description: data.description,
@@ -96,28 +108,34 @@ async function syncDataToTypesense() {
       logo_url: data.logo_url,
       website_url: data.website_url,
       like_count: data.like_count || 0,
-    };
+    });
 
-    try {
+    if (documents.length >= batchSize) {
       await typesenseClient
         .collections("dev_tools")
         .documents()
-        .upsert(typesenseDoc);
-      console.log(`Synced document ${doc.id}`);
-      syncedCount++;
-      console.log(`Synced ${syncedCount} documents`);
-    } catch (error) {
-      console.error(`Error syncing document ${doc.id}:`, error);
+        .import(documents);
+      documents = [];
     }
+  }
+
+  if (documents.length > 0) {
+    await typesenseClient
+      .collections("dev_tools")
+      .documents()
+      .import(documents);
   }
 }
 
-syncDataToTypesense()
-  .then(() => {
-    console.log("Sync completed");
+async function main() {
+  try {
+    await syncDataToTypesense();
+    console.log("Sync completed successfully");
     process.exit(0);
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error("Sync failed:", error);
     process.exit(1);
-  });
+  }
+}
+
+main();
