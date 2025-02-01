@@ -4,27 +4,92 @@
 import * as admin from "firebase-admin";
 import Typesense from "typesense";
 import type { CollectionCreateSchema } from "typesense/lib/Typesense/Collections";
-import dotenv from "dotenv";
 import { resolve } from "path";
-import { readFile } from "fs/promises";
-
-dotenv.config();
+import { readFileSync } from "fs";
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import readline from "readline";
 
 let db: admin.firestore.Firestore;
+let app: admin.app.App | undefined;
 
-const typesenseClient = new Typesense.Client({
-  nodes: [
-    {
-      host: process.env.TYPESENSE_HOST || "",
-      port: parseInt(process.env.TYPESENSE_PORT || ""),
-      protocol: process.env.TYPESENSE_PROTOCOL || "",
-    },
-  ],
-  apiKey: process.env.TYPESENSE_API_KEY || "",
-  connectionTimeoutSeconds: 2,
-  retryIntervalSeconds: 1,
-  numRetries: 3,
-});
+const promptEnvironment = async (): Promise<string> => {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(
+      "Which environment do you want to use? (dev/prod): ",
+      (answer) => {
+        rl.close();
+        resolve(answer.toLowerCase());
+      }
+    );
+  });
+};
+
+async function initialize() {
+  const env = await promptEnvironment();
+  const serviceAccountPath = resolve(__dirname, `../../pkFirebase-${env}.json`);
+  const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf-8"));
+
+  if (!app) {
+    app = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  }
+  db = admin.firestore();
+
+  const projectId = serviceAccount.project_id;
+  console.log("projectId", projectId);
+
+  return { projectId };
+}
+
+const getEnvironmentConfig = async (projectId: string) => {
+  const client = new SecretManagerServiceClient();
+
+  const [nodeEnvResponse] = await client.accessSecretVersion({
+    name: `projects/${projectId}/secrets/NODE_ENV/versions/latest`,
+  });
+  const [typesenseHostResponse] = await client.accessSecretVersion({
+    name: `projects/${projectId}/secrets/TYPESENSE_HOST/versions/latest`,
+  });
+  const [typesenseApiKeyResponse] = await client.accessSecretVersion({
+    name: `projects/${projectId}/secrets/TYPESENSE_API_KEY/versions/latest`,
+  });
+
+  const environment = nodeEnvResponse.payload?.data?.toString() || "dev";
+  const typesenseHost = typesenseHostResponse.payload?.data?.toString() || "";
+  const typesenseApiKey =
+    typesenseApiKeyResponse.payload?.data?.toString() || "";
+
+  return {
+    environment,
+    collectionName: environment === "prod" ? "dev_tools" : "dev_tools",
+    typesenseHost,
+    typesenseApiKey,
+  };
+};
+
+const initTypesenseClient = async () => {
+  const { projectId } = await initialize();
+  const config = await getEnvironmentConfig(projectId);
+  return new Typesense.Client({
+    nodes: [
+      {
+        host: config.typesenseHost,
+        port: 443,
+        protocol: "https",
+      },
+    ],
+    apiKey: config.typesenseApiKey,
+    connectionTimeoutSeconds: 10,
+    retryIntervalSeconds: 1,
+    numRetries: 5,
+  });
+};
 
 const schema: CollectionCreateSchema = {
   name: "dev_tools",
@@ -44,16 +109,7 @@ const schema: CollectionCreateSchema = {
 
 async function createCollectionIfNotExists() {
   try {
-    const serviceAccountPath = resolve(__dirname, "../../pkFirebase-dev.json");
-    const serviceAccount = JSON.parse(
-      await readFile(serviceAccountPath, "utf-8")
-    );
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-
-    db = admin.firestore();
+    const typesenseClient = await initTypesenseClient();
 
     console.log("Testing Typesense connection...");
     const health = await typesenseClient.health.retrieve();
@@ -61,21 +117,21 @@ async function createCollectionIfNotExists() {
 
     await typesenseClient.collections("dev_tools").delete();
     console.log("Deleted existing collection");
+
+    await typesenseClient.collections().create(schema);
+    console.log("Created new collection" + schema.name);
+
+    return typesenseClient;
   } catch (error) {
-    if (error instanceof Typesense.Errors.ObjectNotFound) {
-      await typesenseClient.collections().create(schema);
-      console.log("Created new collection");
-    } else {
-      console.error("Connection failed. Verify:");
-      console.log("- TYPESENSE_HOST:", process.env.TYPESENSE_HOST);
-      console.log("- TYPESENSE_PORT:", process.env.TYPESENSE_PORT);
-      throw error;
-    }
+    console.error("Connection failed. Verify:");
+    console.log("- TYPESENSE_HOST:", process.env.TYPESENSE_HOST);
+    console.log("- TYPESENSE_PORT:", process.env.TYPESENSE_PORT);
+    throw error;
   }
 }
 
 async function syncDataToTypesense() {
-  await createCollectionIfNotExists();
+  const typesenseClient = await createCollectionIfNotExists();
 
   const toolsRef = db.collection("tools");
   const snapshot = await toolsRef.get();
