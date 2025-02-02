@@ -1,26 +1,28 @@
+/* eslint-disable require-jsdoc */
+/* eslint-disable object-curly-spacing */
 import Typesense from "typesense";
-import * as functions from "firebase-functions";
+import { defineSecret } from "firebase-functions/params";
 
-console.log("Full Firebase config:", functions.config());
-console.log("Typesense config:", functions.config().typesense);
+const typesenseHost = defineSecret("TYPESENSE_HOST");
+const typesenseApiKey = defineSecret("TYPESENSE_API_KEY");
 
-const typesenseConfig = functions.config().typesense;
+export function getTypesenseClient() {
+  const host = typesenseHost.value();
+  const apiKey = typesenseApiKey.value();
 
-if (!typesenseConfig) {
-  console.error(
-    "Typesense configuration is missing. Please set it using Firebase " +
-      "Functions config."
-  );
+  if (!host || !apiKey) {
+    throw new Error("Typesense configuration is missing.");
+  }
+
+  return new Typesense.Client({
+    nodes: [
+      {
+        host: host,
+        port: 443,
+        protocol: "https",
+      },
+    ],
+    apiKey: apiKey,
+    connectionTimeoutSeconds: 2,
+  });
 }
-
-export const typesenseClient = new Typesense.Client({
-  nodes: [
-    {
-      host: typesenseConfig.host,
-      port: parseInt(typesenseConfig.port),
-      protocol: typesenseConfig.protocol,
-    },
-  ],
-  apiKey: typesenseConfig.apikey,
-  connectionTimeoutSeconds: 2,
-});

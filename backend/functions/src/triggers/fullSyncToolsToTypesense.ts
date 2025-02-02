@@ -1,7 +1,7 @@
 /* eslint-disable operator-linebreak */
 /* eslint-disable object-curly-spacing */
 import * as admin from "firebase-admin";
-import { typesenseClient } from "../config/typesense";
+import { getTypesenseClient } from "../config/typesense";
 import { sendTelegramMessage } from "../config/telegram";
 import { TypesenseError } from "typesense/lib/Typesense/Errors";
 import { onRequest } from "firebase-functions/v2/https";
@@ -10,6 +10,13 @@ export const fullSyncToolsToTypesense = onRequest(
   {
     timeoutSeconds: 540,
     memory: "1GiB",
+    secrets: [
+      "TYPESENSE_API_KEY",
+      "TYPESENSE_HOST",
+      "NODE_ENV",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_CHAT_ID",
+    ],
   },
   async (request, response) => {
     const logMessages = [];
@@ -71,7 +78,7 @@ export const fullSyncToolsToTypesense = onRequest(
 
             // Check if the tool exists in Typesense
             try {
-              const existingTool = await typesenseClient
+              const existingTool = await getTypesenseClient()
                 .collections("dev_tools")
                 .documents(toolId)
                 .retrieve();
@@ -80,7 +87,7 @@ export const fullSyncToolsToTypesense = onRequest(
               if (
                 JSON.stringify(existingTool) !== JSON.stringify(objectToIndex)
               ) {
-                await typesenseClient
+                await getTypesenseClient()
                   .collections("dev_tools")
                   .documents(toolId)
                   .update(objectToIndex);
@@ -89,7 +96,7 @@ export const fullSyncToolsToTypesense = onRequest(
             } catch (error) {
               // If the tool doesn't exist in Typesense, add it
               if (error instanceof TypesenseError && error.httpStatus === 404) {
-                await typesenseClient
+                await getTypesenseClient()
                   .collections("dev_tools")
                   .documents()
                   .create(objectToIndex);
@@ -103,7 +110,7 @@ export const fullSyncToolsToTypesense = onRequest(
       }
 
       // Verify the number of tools in Typesense
-      const typesenseToolsCount = await typesenseClient
+      const typesenseToolsCount = await getTypesenseClient()
         .collections("dev_tools")
         .documents()
         .search({
@@ -131,6 +138,12 @@ ${syncStatus}
       response.status(200).send("Full sync completed successfully");
     } catch (error) {
       console.error("Error during full sync:", error);
+      // Add error details to log messages
+      logMessages.push(
+        `Error during full sync: ${
+          error instanceof Error ? error.message : error
+        }`
+      );
       response.status(500).send("Error during full sync");
       logMessages.push(`Error during full sync: ${error}`);
     }

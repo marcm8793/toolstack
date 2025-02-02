@@ -6,19 +6,10 @@ import { onRequest } from "firebase-functions/v2/https";
 import { pineconeClient } from "../config/pinecone";
 import * as admin from "firebase-admin";
 import { sendTelegramMessage } from "../config/telegram";
-import OpenAI from "openai";
-import * as functions from "firebase-functions";
-
-const INDEX_NAME =
-  functions.config().environment.prod === "true"
-    ? "toolstack-tools-prod"
-    : "toolstack-tools-dev";
-
-const openai = new OpenAI({
-  apiKey: functions.config().openai.key,
-});
+import { getOpenAIClient } from "../config/openai";
 
 async function getEmbedding(text: string): Promise<number[]> {
+  const openai = getOpenAIClient();
   const response = await openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
@@ -39,10 +30,17 @@ export const fullSyncToolsToPinecone = onRequest(
   {
     memory: "2GiB",
     timeoutSeconds: 540,
+    secrets: [
+      "OPENAI_API_KEY",
+      "PINECONE_API_KEY",
+      "NODE_ENV",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_CHAT_ID",
+    ],
   },
   async (req, res) => {
     console.log("Starting full sync to Pinecone");
-    const index = pineconeClient.index(INDEX_NAME);
+    const index = pineconeClient.pineconeIndex();
     const db = admin.firestore();
 
     try {

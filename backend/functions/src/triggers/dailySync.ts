@@ -2,22 +2,21 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { HttpsError } from "firebase-functions/v2/https";
-import * as functions from "firebase-functions";
+import { defineSecret } from "firebase-functions/params";
 
 export const triggerDailySync = onSchedule(
   {
     timeZone: "Europe/Paris",
     schedule: "0 12 * * *",
+    secrets: ["PROJECT_URL"],
   },
   async () => {
     try {
-      const region = functions.config().project.region;
-      const projectId = functions.config().project.id;
+      const projectUrl = defineSecret("PROJECT_URL");
 
-      // Call both sync endpoints
       const syncUrls = [
-        `https://${region}-${projectId}.cloudfunctions.net/fullSyncToolsToTypesense`,
-        `https://${region}-${projectId}.cloudfunctions.net/fullSyncToolsToPinecone`,
+        `https://fullsynctoolstotypesense-${projectUrl.value()}`,
+        `https://fullsynctoolstopinecone-${projectUrl.value()}`,
       ];
 
       for (const url of syncUrls) {

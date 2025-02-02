@@ -1,3 +1,4 @@
+/* eslint-disable object-curly-spacing */
 import * as admin from "firebase-admin";
 import { syncToolsToTypesense } from "./triggers/syncToolsToTypesense";
 import { syncToolsToPinecone } from "./triggers/syncToolsToPinecone";

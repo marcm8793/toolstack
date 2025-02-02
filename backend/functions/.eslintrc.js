@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 module.exports = {
   root: true,
   env: {
@@ -27,5 +28,6 @@ module.exports = {
     quotes: ["error", "double"],
     "import/no-unresolved": 0,
     indent: ["error", 2],
+    "quote-props": "off",
   },
 };

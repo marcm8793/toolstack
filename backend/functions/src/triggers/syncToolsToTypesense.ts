@@ -1,9 +1,12 @@
 /* eslint-disable object-curly-spacing */
-import { typesenseClient } from "../config/typesense";
-import { onDocumentWritten } from "firebase-functions/firestore";
+import { getTypesenseClient } from "../config/typesense";
+import { onDocumentWritten } from "firebase-functions/v2/firestore";
 
 export const syncToolsToTypesense = onDocumentWritten(
-  "tools/{toolId}",
+  {
+    document: "tools/{toolId}",
+    secrets: ["TYPESENSE_HOST", "TYPESENSE_API_KEY"],
+  },
   async (event) => {
     console.log("Syncing tool to Typesense");
     console.log("Change:", event.data?.after);
@@ -16,7 +19,7 @@ export const syncToolsToTypesense = onDocumentWritten(
     if (!toolData) {
       // Tool was deleted, remove from Typesense
       try {
-        await typesenseClient
+        await getTypesenseClient()
           .collections("dev_tools")
           .documents(toolId)
           .delete();
@@ -54,7 +57,7 @@ export const syncToolsToTypesense = onDocumentWritten(
       };
 
       // Add or update the tool in Typesense
-      await typesenseClient
+      await getTypesenseClient()
         .collections("dev_tools")
         .documents()
         .upsert(objectToIndex);

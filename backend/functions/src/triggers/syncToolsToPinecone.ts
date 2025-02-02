@@ -1,21 +1,13 @@
 /* eslint-disable operator-linebreak */
 /* eslint-disable object-curly-spacing */
-import { onDocumentWritten } from "firebase-functions/firestore";
+/* eslint-disable require-jsdoc */
 import { pineconeClient } from "../config/pinecone";
-import * as functions from "firebase-functions";
-import OpenAI from "openai";
-
-const INDEX_NAME =
-  functions.config().environment.prod === "true"
-    ? "toolstack-tools-prod"
-    : "toolstack-tools-dev";
-
-const openai = new OpenAI({
-  apiKey: functions.config().openai.key,
-});
+import { getOpenAIClient } from "../config/openai";
+import { onDocumentWritten } from "firebase-functions/v2/firestore";
 
 // eslint-disable-next-line require-jsdoc
 async function getEmbedding(text: string) {
+  const openai = getOpenAIClient();
   const response = await openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
@@ -24,11 +16,14 @@ async function getEmbedding(text: string) {
 }
 
 export const syncToolsToPinecone = onDocumentWritten(
-  "tools/{toolId}",
+  {
+    document: "tools/{toolId}",
+    secrets: ["OPENAI_API_KEY", "PINECONE_API_KEY"],
+  },
   async (event) => {
     const toolData = event.data?.after.exists ? event.data.after.data() : null;
     const toolId = event.params.toolId;
-    const index = pineconeClient.index(INDEX_NAME);
+    const index = pineconeClient.pineconeIndex();
     let countTool = 0;
 
     try {

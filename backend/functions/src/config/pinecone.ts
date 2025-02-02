@@ -1,16 +1,28 @@
 /* eslint-disable object-curly-spacing */
-
-import * as functions from "firebase-functions";
+/* eslint-disable require-jsdoc */
+/* eslint-disable operator-linebreak */
 import { Pinecone } from "@pinecone-database/pinecone";
+import { defineSecret } from "firebase-functions/params";
+import { getNodeEnv } from "./node-env";
 
-const pineconeConfig = functions.config().pinecone;
+let pineconeClientInstance: Pinecone | null = null;
 
-if (!pineconeConfig) {
-  console.error(
-    "Pinecone config missing. Please set using Firebase Functions config."
-  );
+const pineconeApiKey = defineSecret("PINECONE_API_KEY");
+
+function getPineconeClient(): Pinecone {
+  if (!pineconeClientInstance) {
+    pineconeClientInstance = new Pinecone({
+      apiKey: pineconeApiKey.value(),
+    });
+  }
+  return pineconeClientInstance;
 }
+export const pineconeIndexName = () => {
+  return getNodeEnv() === "prod"
+    ? "toolstack-tools-prod"
+    : "toolstack-tools-dev";
+};
 
-export const pineconeClient = new Pinecone({
-  apiKey: pineconeConfig.apikey,
-});
+export const pineconeClient = {
+  pineconeIndex: () => getPineconeClient().index(pineconeIndexName()),
+};
