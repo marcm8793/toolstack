@@ -2,18 +2,8 @@
 /* eslint-disable object-curly-spacing */
 /* eslint-disable require-jsdoc */
 import { pineconeClient } from "../config/pinecone";
-import { getOpenAIClient } from "../config/openai";
+import { getEmbedding } from "../utils";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
-
-// eslint-disable-next-line require-jsdoc
-async function getEmbedding(text: string) {
-  const openai = getOpenAIClient();
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: text,
-  });
-  return response.data[0].embedding;
-}
 
 export const syncToolsToPinecone = onDocumentWritten(
   {

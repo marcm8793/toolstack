@@ -6,16 +6,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { pineconeClient } from "../config/pinecone";
 import * as admin from "firebase-admin";
 import { sendTelegramMessage } from "../config/telegram";
-import { getOpenAIClient } from "../config/openai";
-
-async function getEmbedding(text: string): Promise<number[]> {
-  const openai = getOpenAIClient();
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: text,
-  });
-  return response.data[0].embedding;
-}
+import { getEmbedding } from "../utils";
 
 // Helper function to chunk array into smaller batches
 function chunkArray<T>(array: T[], size: number): T[][] {
