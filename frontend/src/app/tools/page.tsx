@@ -1,4 +1,6 @@
+import DevToolsSkeleton from "@/components/skeletons/DevToolsSkeleton";
 import { DevToolsTable } from "@/components/tooltable/devtools-table";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -25,5 +27,9 @@ async function getInitialData() {
 }
 
 export default async function ToolsPage() {
-  return <DevToolsTable initialData={await getInitialData()} />;
+  return (
+    <Suspense fallback={<DevToolsSkeleton />}>
+      <DevToolsTable initialData={await getInitialData()} />
+    </Suspense>
+  );
 }
