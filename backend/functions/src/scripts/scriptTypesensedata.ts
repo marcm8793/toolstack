@@ -31,8 +31,11 @@ const promptEnvironment = async (): Promise<string> => {
 
 async function initialize() {
   const env = await promptEnvironment();
+  console.log("env", env);
   const serviceAccountPath = resolve(__dirname, `../../pkFirebase-${env}.json`);
   const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf-8"));
+
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = serviceAccountPath;
 
   if (!app) {
     app = admin.initializeApp({
@@ -49,21 +52,26 @@ async function initialize() {
 
 const getEnvironmentConfig = async (projectId: string) => {
   const client = new SecretManagerServiceClient();
-
   const [nodeEnvResponse] = await client.accessSecretVersion({
     name: `projects/${projectId}/secrets/NODE_ENV/versions/latest`,
   });
+  console.log("nodeEnvResponse", nodeEnvResponse);
   const [typesenseHostResponse] = await client.accessSecretVersion({
     name: `projects/${projectId}/secrets/TYPESENSE_HOST/versions/latest`,
   });
+  console.log("typesenseHostResponse", typesenseHostResponse);
   const [typesenseApiKeyResponse] = await client.accessSecretVersion({
     name: `projects/${projectId}/secrets/TYPESENSE_API_KEY/versions/latest`,
   });
-
+  console.log("typesenseApiKeyResponse", typesenseApiKeyResponse);
   const environment = nodeEnvResponse.payload?.data?.toString() || "dev";
   const typesenseHost = typesenseHostResponse.payload?.data?.toString() || "";
   const typesenseApiKey =
     typesenseApiKeyResponse.payload?.data?.toString() || "";
+
+  console.log("environment", environment);
+  console.log("typesenseHost", typesenseHost);
+  console.log("typesenseApiKey", typesenseApiKey);
 
   return {
     environment,
@@ -115,8 +123,15 @@ async function createCollectionIfNotExists() {
     const health = await typesenseClient.health.retrieve();
     console.log(`Typesense health: ${JSON.stringify(health)}`);
 
-    await typesenseClient.collections("dev_tools").delete();
-    console.log("Deleted existing collection");
+    try {
+      await typesenseClient.collections("dev_tools").retrieve();
+      console.log("Collection exists, deleting...");
+      await typesenseClient.collections("dev_tools").delete();
+    } catch (error) {
+      if ((error as Error).message.includes("404")) {
+        console.log("Collection does not exist yet");
+      }
+    }
 
     await typesenseClient.collections().create(schema);
     console.log("Created new collection" + schema.name);
