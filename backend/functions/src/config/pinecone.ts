@@ -18,9 +18,10 @@ function getPineconeClient(): Pinecone {
   return pineconeClientInstance;
 }
 export const pineconeIndexName = () => {
-  return getNodeEnv() === "prod"
-    ? "toolstack-tools-prod"
-    : "toolstack-tools-dev";
+  if (getNodeEnv() === "production") {
+    return "toolstack-tools-prod";
+  }
+  return "toolstack-tools-dev";
 };
 
 export const pineconeClient = {
