@@ -152,7 +152,7 @@ const AddToolPage = () => {
     setIsGenerating(true);
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -602,6 +602,17 @@ const AddToolPage = () => {
             />
             <Button type="button" onClick={addBadge}>
               Add Badges
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                setValue("badges", []);
+                setNewBadge("");
+              }}
+              disabled={badges.length === 0}
+            >
+              Remove All
             </Button>
           </div>
           <p className="text-sm text-gray-500 mt-1">
