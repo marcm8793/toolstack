@@ -10,6 +10,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import { FaRobot } from "react-icons/fa";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -26,6 +27,7 @@ export const ChatBot = () => {
   const functions = getFunctions();
   const generateResponse = httpsCallable(functions, "generateChatResponse");
   const router = useRouter();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -85,10 +87,17 @@ export const ChatBot = () => {
     }
   };
 
+  // Updated chat icon toggle handler:
+  const handleChatToggle = () => {
+    // Dismiss the tour guide when clicking the chat icon.
+    window.dispatchEvent(new Event("dismissTourGuide"));
+    setIsOpen((prev) => !prev);
+  };
+
   return (
     <>
       <Button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleChatToggle}
         className="fixed bottom-4 right-4 rounded-full w-12 h-12 shadow-lg z-50"
         size="icon"
       >
@@ -210,3 +219,5 @@ export const ChatBot = () => {
     </>
   );
 };
+
+export default ChatBot;

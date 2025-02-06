@@ -1,5 +1,6 @@
 import { ArrowRight, Code, Zap, Search } from "lucide-react";
 import Link from "next/link";
+import TourGuide from "@/components/tour-guide";
 
 const FeatureCard = ({
   icon: Icon,
@@ -19,7 +20,7 @@ const FeatureCard = ({
 
 const HomePage = () => {
   return (
-    <div className="container min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 dark:from-gray-900 dark:to-indigo-900 flex items-center justify-center p-4 rounded-3xl">
+    <div className="container min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 dark:from-gray-900 dark:to-indigo-900 flex items-center justify-center p-4 rounded-3xl relative">
       <div className="w-full max-w-6xl bg-white/30 dark:bg-gray-800/30 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-16">
@@ -56,6 +57,14 @@ const HomePage = () => {
             />
           </div>
 
+          <div className="text-center mb-16">
+            <p className="text-xl text-gray-700 dark:text-gray-300">
+              Need assistance? Our integrated <strong>AI Chatbot</strong> is
+              always available to help! Click the chat icon at the bottom‑right
+              of the screen to ask questions and get personalized guidance.
+            </p>
+          </div>
+
           <div className="text-center">
             <h2 className="text-3xl font-semibold mb-4">
               Ready to supercharge your development?
@@ -70,6 +79,8 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      <TourGuide />
     </div>
   );
 };
