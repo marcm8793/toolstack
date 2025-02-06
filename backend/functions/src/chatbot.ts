@@ -5,6 +5,29 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { pineconeClient } from "./config/pinecone";
 import { getOpenAIClient } from "./config/openai";
+import { RecordMetadata } from "@pinecone-database/pinecone";
+import { ScoredPineconeRecord } from "@pinecone-database/pinecone";
+
+function generateContext(
+  matches: ScoredPineconeRecord<RecordMetadata>[]
+): string {
+  return matches
+    .map((match) => {
+      const tool = match.metadata;
+      if (!tool) return "";
+      return `Tool: ${tool.name}
+Description: ${tool.description}
+Website: ${tool.website_url}
+Category: ${tool.category}
+Ecosystem: ${tool.ecosystem}
+${
+  tool.badges && Array.isArray(tool.badges)
+    ? `Tags: ${tool.badges.join(", ")}`
+    : ""
+}`;
+    })
+    .join("\n\n");
+}
 
 export const generateChatResponse = onCall(
   { secrets: ["OPENAI_API_KEY", "PINECONE_API_KEY"] },
@@ -26,56 +49,51 @@ export const generateChatResponse = onCall(
     }
 
     try {
-      // Generate embedding for the query
-      const queryEmbedding = await getOpenAIClient().embeddings.create({
+      // Timing the embedding generation for monitoring
+      console.time("Generate Embedding");
+      const embeddingResponse = await getOpenAIClient().embeddings.create({
         model: "text-embedding-3-small",
         input: toolQuery,
         dimensions: 1536,
       });
+      console.timeEnd("Generate Embedding");
 
-      // Search Pinecone for relevant tools
+      const queryEmbedding = embeddingResponse.data[0].embedding;
+
+      // Timing the Pinecone query for monitoring
+      console.time("Pinecone Query");
       const searchResults = await pineconeClient.pineconeIndex().query({
-        vector: queryEmbedding.data[0].embedding,
+        vector: queryEmbedding,
         topK: 5,
         includeMetadata: true,
       });
+      console.timeEnd("Pinecone Query");
 
-      // Prepare context from relevant tools
-      const context = searchResults.matches
-        .map((match) => {
-          const tool = match.metadata;
-          if (!tool) return "";
-          return `Tool: ${tool.name}
-              Description: ${tool.description}
-              Category: ${tool.category}
-              Ecosystem: ${tool.ecosystem}    ${
-            tool.badges && Array.isArray(tool.badges)
-              ? `Tags: ${tool.badges.join(", ")}`
-              : ""
-          }`;
-        })
-        .join("\n\n");
+      // Prepare context from search results
+      const context = generateContext(searchResults.matches);
 
-      // Generate OpenAI response
+      // Build system message with the context
+      const systemMessage = {
+        role: "system",
+        content: `You are a helpful assistant for ToolStack, a platform for
+        discovering developer tools.
+Use the following context about tools to answer questions:
+${context}
+
+Whenever you propose a developer tool, please include its website link
+provided in the context. If you don't find relevant information in the
+context, provide general guidance about developer tools.
+Always be friendly and concise.`,
+      };
+
+      console.time("Chat Completion");
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `You are a helpful assistant for ToolStack, a platform for
-                     discovering developer tools.
-            Use the following context about tools to answer questions:
-            ${context}
-
-            If you don't find relevant information in the context, you can
-            provide general guidance about developer tools.
-            Always be friendly and concise in your responses.`,
-          },
-          ...messages,
-        ],
+        model: "gpt-4o-mini",
+        messages: [systemMessage, ...messages],
         temperature: 0.7,
         max_tokens: 500,
       });
+      console.timeEnd("Chat Completion");
 
       return {
         message: response.choices[0].message.content,
