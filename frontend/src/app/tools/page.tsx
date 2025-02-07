@@ -1,4 +1,5 @@
 import DevToolsSkeleton from "@/components/skeletons/DevToolsSkeleton";
+import { CompactStatsCard } from "@/components/stats-cards";
 import { DevToolsTable } from "@/components/tooltable/devtools-table";
 import { Suspense } from "react";
 
@@ -28,8 +29,13 @@ async function getInitialData() {
 
 export default async function ToolsPage() {
   return (
-    <Suspense fallback={<DevToolsSkeleton />}>
-      <DevToolsTable initialData={await getInitialData()} />
-    </Suspense>
+    <div className="space-y-6">
+      <Suspense fallback={<DevToolsSkeleton />}>
+        <DevToolsTable initialData={await getInitialData()} />
+      </Suspense>
+      <div className="max-w-sm mx-auto">
+        <CompactStatsCard />
+      </div>
+    </div>
   );
 }
