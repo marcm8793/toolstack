@@ -4,38 +4,53 @@ import { collection, getDocs, getDoc } from "firebase/firestore";
 
 export async function GET() {
   try {
-    // Fetch tools with their full category and ecosystem data
     const toolsSnapshot = await getDocs(collection(db, "tools"));
-    const tools = await Promise.all(
-      toolsSnapshot.docs.map(async (doc) => {
-        const data = doc.data();
+    const toolsData = toolsSnapshot.docs.map((doc) => doc.data());
 
-        // Fetch full category data if it exists
-        let category = null;
-        if (data.category?.id) {
-          const categoryDoc = await getDoc(data.category);
-          category = categoryDoc.exists()
-            ? { id: categoryDoc.id, ...(categoryDoc.data() as object) }
-            : null;
-        }
-
-        // Fetch full ecosystem data if it exists
-        let ecosystem = null;
-        if (data.ecosystem?.id) {
-          const ecosystemDoc = await getDoc(data.ecosystem);
-          ecosystem = ecosystemDoc.exists()
-            ? { id: ecosystemDoc.id, ...(ecosystemDoc.data() as object) }
-            : null;
-        }
-
-        return {
-          id: doc.id,
-          ...data,
-          category: category,
-          ecosystem: ecosystem,
-        };
-      })
+    // Batch fetch all unique categories and ecosystems
+    const categoryRefs = Array.from(
+      new Set(toolsData.map((t) => t.category).filter((ref) => ref?.id))
     );
+    const ecosystemRefs = Array.from(
+      new Set(toolsData.map((t) => t.ecosystem).filter((ref) => ref?.id))
+    );
+
+    // Parallel fetch all categories and ecosystems
+    const [categoryDocs, ecosystemDocs] = await Promise.all([
+      Promise.all(categoryRefs.map((ref) => getDoc(ref))),
+      Promise.all(ecosystemRefs.map((ref) => getDoc(ref))),
+    ]);
+
+    // Create lookup maps
+    const categoriesMap = new Map(
+      categoryDocs.map((docSnap, index) => [
+        categoryRefs[index].id,
+        docSnap.exists()
+          ? { id: docSnap.id, ...(docSnap.data() as object) }
+          : null,
+      ])
+    );
+
+    const ecosystemsMap = new Map(
+      ecosystemDocs.map((docSnap, index) => [
+        ecosystemRefs[index].id,
+        docSnap.exists()
+          ? { id: docSnap.id, ...(docSnap.data() as object) }
+          : null,
+      ])
+    );
+
+    // Process tools with cached data
+    const tools = toolsSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        category: data.category ? categoriesMap.get(data.category.id) : null,
+        ecosystem: data.ecosystem ? ecosystemsMap.get(data.ecosystem.id) : null,
+      };
+    });
+
     // Fetch all categories and ecosystems for filtering
     const categoriesSnapshot = await getDocs(collection(db, "categories"));
     const categories = categoriesSnapshot.docs.map((doc) => ({
