@@ -18,10 +18,14 @@ function getPineconeClient(): Pinecone {
   return pineconeClientInstance;
 }
 export const pineconeIndexName = () => {
+  console.log("getNodeEnv()", getNodeEnv());
   if (getNodeEnv() === "production") {
     return "toolstack-tools-prod";
+  } else if (getNodeEnv() === "dev") {
+    return "toolstack-tools-dev";
+  } else {
+    throw new Error("Invalid environment");
   }
-  return "toolstack-tools-dev";
 };
 
 export const pineconeClient = {

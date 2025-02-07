@@ -5,6 +5,8 @@ import {
   DoubleArrowRightIcon,
 } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +24,39 @@ interface DataTablePaginationProps<TData> {
 export function DataTablePagination<TData>({
   table,
 }: DataTablePaginationProps<TData>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const createQueryString = useCallback(
+    (params: { [key: string]: string }) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
+      // Update or add new parameters
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === null) {
+          newSearchParams.delete(key);
+        } else {
+          newSearchParams.set(key, value);
+        }
+      });
+
+      return newSearchParams.toString();
+    },
+    [searchParams]
+  );
+
+  const updateURL = useCallback(
+    (pageKey: string | null, pageSize: number) => {
+      const queryString = createQueryString({
+        ...(pageKey && { pageKey }),
+        pageSize: pageSize.toString(),
+      });
+
+      router.push(`/tools${queryString ? `?${queryString}` : ""}`);
+    },
+    [router, createQueryString]
+  );
+
   return (
     <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto p-1 sm:flex-row sm:gap-8">
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
@@ -30,7 +65,9 @@ export function DataTablePagination<TData>({
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
-              table.setPageSize(Number(value));
+              const newSize = Number(value);
+              table.setPageSize(newSize);
+              updateURL(null, newSize); // Reset to first page with new size
             }}
           >
             <SelectTrigger className="h-8 w-[4.5rem]">
@@ -53,7 +90,10 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => table.setPageIndex(0)}
+            onClick={() => {
+              table.setPageIndex(0);
+              updateURL(null, table.getState().pagination.pageSize);
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             <span className="sr-only">Go to first page</span>
@@ -62,7 +102,14 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              table.previousPage();
+              const prevPageKey = table.getState().pagination.pageIndex - 1;
+              updateURL(
+                prevPageKey > 0 ? prevPageKey.toString() : null,
+                table.getState().pagination.pageSize
+              );
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             <span className="sr-only">Go to previous page</span>
@@ -71,7 +118,13 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              table.nextPage();
+              updateURL(
+                table.getState().pagination.pageIndex.toString(),
+                table.getState().pagination.pageSize
+              );
+            }}
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Go to next page</span>
@@ -80,7 +133,14 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            onClick={() => {
+              const lastPage = table.getPageCount() - 1;
+              table.setPageIndex(lastPage);
+              updateURL(
+                lastPage.toString(),
+                table.getState().pagination.pageSize
+              );
+            }}
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Go to last page</span>
