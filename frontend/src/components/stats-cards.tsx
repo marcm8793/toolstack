@@ -3,42 +3,39 @@
 import { Card } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
 import { collection, getCountFromServer } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "./ui/skeleton";
 
 export function CompactStatsCard() {
-  const [stats, setStats] = useState<{
-    tools?: number;
-    categories?: number;
-    ecosystems?: number;
-  }>({});
+  const {
+    data: stats,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["stats"],
+    queryFn: async () => {
+      const toolsColl = collection(db, "tools");
+      const categoriesColl = collection(db, "categories");
+      const ecosystemsColl = collection(db, "ecosystems");
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const toolsColl = collection(db, "tools");
-        const categoriesColl = collection(db, "categories");
-        const ecosystemsColl = collection(db, "ecosystems");
+      const [toolsSnapshot, categoriesSnapshot, ecosystemsSnapshot] =
+        await Promise.all([
+          getCountFromServer(toolsColl),
+          getCountFromServer(categoriesColl),
+          getCountFromServer(ecosystemsColl),
+        ]);
 
-        const [toolsSnapshot, categoriesSnapshot, ecosystemsSnapshot] =
-          await Promise.all([
-            getCountFromServer(toolsColl),
-            getCountFromServer(categoriesColl),
-            getCountFromServer(ecosystemsColl),
-          ]);
+      return {
+        tools: toolsSnapshot.data().count,
+        categories: categoriesSnapshot.data().count,
+        ecosystems: ecosystemsSnapshot.data().count,
+      };
+    },
+  });
 
-        setStats({
-          tools: toolsSnapshot.data().count,
-          categories: categoriesSnapshot.data().count,
-          ecosystems: ecosystemsSnapshot.data().count,
-        });
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  if (error) {
+    console.error("Error fetching stats:", error);
+  }
 
   return (
     <Card className="p-2 dark:bg-neutral-900/50">
@@ -46,7 +43,11 @@ export function CompactStatsCard() {
         {/* Tools Stat */}
         <div className="flex flex-col space-y-1">
           <span className="font-bold dark:text-neutral-100">
-            {stats.tools ?? <Skeleton className="h-7 w-10 mx-auto" />}
+            {isLoading ? (
+              <Skeleton className="h-7 w-10 mx-auto" />
+            ) : (
+              stats?.tools
+            )}
           </span>
           <span className="text-sm text-muted-foreground">Tools</span>
         </div>
@@ -54,7 +55,11 @@ export function CompactStatsCard() {
         {/* Categories Stat */}
         <div className="flex flex-col space-y-1 border-x dark:border-neutral-800">
           <span className="font-bold dark:text-neutral-100">
-            {stats.categories ?? <Skeleton className="h-7 w-10 mx-auto" />}
+            {isLoading ? (
+              <Skeleton className="h-7 w-10 mx-auto" />
+            ) : (
+              stats?.categories
+            )}
           </span>
           <span className="text-sm text-muted-foreground">Categories</span>
         </div>
@@ -62,7 +67,11 @@ export function CompactStatsCard() {
         {/* Ecosystems Stat */}
         <div className="flex flex-col space-y-1">
           <span className="font-bold dark:text-neutral-100">
-            {stats.ecosystems ?? <Skeleton className="h-7 w-10 mx-auto" />}
+            {isLoading ? (
+              <Skeleton className="h-7 w-10 mx-auto" />
+            ) : (
+              stats?.ecosystems
+            )}
           </span>
           <span className="text-sm text-muted-foreground">Ecosystems</span>
         </div>

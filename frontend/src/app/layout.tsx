@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
+import { ReactQueryProvider } from "@/providers/react-query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,28 +66,30 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <PostHogProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+        <ReactQueryProvider>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           >
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">
-                <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-                  {children}
-                </div>
-              </main>
-              <Footer />
-              <Toaster />
-              <Analytics />
-            </div>
-          </ThemeProvider>
-        </body>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">
+                  <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+                    {children}
+                  </div>
+                </main>
+                <Footer />
+                <Toaster />
+                <Analytics />
+              </div>
+            </ThemeProvider>
+          </body>
+        </ReactQueryProvider>
       </PostHogProvider>
     </html>
   );
