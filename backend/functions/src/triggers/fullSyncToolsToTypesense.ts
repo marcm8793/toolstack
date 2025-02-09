@@ -13,7 +13,7 @@ export const fullSyncToolsToTypesense = onRequest(
     secrets: [
       "TYPESENSE_API_KEY",
       "TYPESENSE_HOST",
-      "NODE_ENV",
+      "PROJECT_ENV",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_CHAT_ID",
     ],

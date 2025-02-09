@@ -3,7 +3,7 @@
 /* eslint-disable operator-linebreak */
 import { Pinecone } from "@pinecone-database/pinecone";
 import { defineSecret } from "firebase-functions/params";
-import { getNodeEnv } from "./node-env";
+import { getProjectEnv } from "./project-env";
 
 let pineconeClientInstance: Pinecone | null = null;
 
@@ -17,11 +17,14 @@ function getPineconeClient(): Pinecone {
   }
   return pineconeClientInstance;
 }
+
 export const pineconeIndexName = () => {
-  console.log("getNodeEnv()", getNodeEnv());
-  if (getNodeEnv() === "production") {
+  console.log("getProjectEnv()", getProjectEnv());
+  if (getProjectEnv() === "PROD") {
+    console.log("returning toolstack-tools-prod");
     return "toolstack-tools-prod";
-  } else if (getNodeEnv() === "dev") {
+  } else if (getProjectEnv() === "DEV") {
+    console.log("returning toolstack-tools-dev");
     return "toolstack-tools-dev";
   } else {
     throw new Error("Invalid environment");

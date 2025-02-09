@@ -24,7 +24,7 @@ export const fullSyncToolsToPinecone = onRequest(
     secrets: [
       "OPENAI_API_KEY",
       "PINECONE_API_KEY",
-      "NODE_ENV",
+      "PROJECT_ENV",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_CHAT_ID",
     ],

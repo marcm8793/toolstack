@@ -7,18 +7,18 @@ import { resolve } from "path";
 import { readFile } from "fs/promises";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || "",
 });
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY || "",
 });
 
-const INDEX_NAME = "toolstack-tools-prod";
+const INDEX_NAME = "toolstack-tools-dev";
 
 async function createIndexIfNotExists() {
   try {
-    const serviceAccountPath = resolve(__dirname, "../../pkFirebase-prod.json");
+    const serviceAccountPath = resolve(__dirname, "../../pkFirebase-dev.json");
     const serviceAccount = JSON.parse(
       await readFile(serviceAccountPath, "utf-8")
     );

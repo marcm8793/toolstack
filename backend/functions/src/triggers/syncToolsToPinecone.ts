@@ -8,7 +8,7 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 export const syncToolsToPinecone = onDocumentWritten(
   {
     document: "tools/{toolId}",
-    secrets: ["OPENAI_API_KEY", "PINECONE_API_KEY", "NODE_ENV"],
+    secrets: ["OPENAI_API_KEY", "PINECONE_API_KEY", "PROJECT_ENV"],
   },
   async (event) => {
     const toolData = event.data?.after.exists ? event.data.after.data() : null;

@@ -30,7 +30,7 @@ ${
 }
 
 export const generateChatResponse = onCall(
-  { secrets: ["OPENAI_API_KEY", "PINECONE_API_KEY"] },
+  { secrets: ["OPENAI_API_KEY", "PINECONE_API_KEY", "PROJECT_ENV"] },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError(
