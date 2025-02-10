@@ -166,7 +166,23 @@ export const ChatBot = () => {
                             : "bg-gray-100 dark:bg-gray-700"
                         } prose dark:prose-invert max-w-none`}
                       >
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                        <ReactMarkdown
+                          components={{
+                            a: ({ href, children, ...props }) => (
+                              <a
+                                href={href}
+                                className="text-blue-500 hover:underline"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                {...props}
+                              >
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   </div>

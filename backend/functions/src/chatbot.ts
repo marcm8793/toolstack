@@ -7,6 +7,7 @@ import { pineconeClient } from "./config/pinecone";
 import { getOpenAIClient } from "./config/openai";
 import { RecordMetadata } from "@pinecone-database/pinecone";
 import { ScoredPineconeRecord } from "@pinecone-database/pinecone";
+import { getRootUrl } from "./config/root-url";
 
 function generateContext(
   matches: ScoredPineconeRecord<RecordMetadata>[]
@@ -14,10 +15,16 @@ function generateContext(
   return matches
     .map((match) => {
       const tool = match.metadata;
+      const toolSlug = tool?.name
+        ? encodeURIComponent(
+            tool.name.toString().toLowerCase().replace(/\s+/g, "-")
+          )
+        : "";
+      const toolLink = `${getRootUrl()}/tools/${match.id}-${toolSlug}`;
       if (!tool) return "";
       return `Tool: ${tool.name}
 Description: ${tool.description}
-Website: ${tool.website_url}
+Website: ${toolLink}
 Category: ${tool.category}
 Ecosystem: ${tool.ecosystem}
 ${
