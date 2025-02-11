@@ -88,8 +88,9 @@ Use the following context about tools to answer questions:
 ${context}
 
 Whenever you propose a developer tool, please include its website link
-provided in the context. If you don't find relevant information in the
-context, provide general guidance about developer tools.
+provided in the context. Prioritize the information provided in the context.
+If you don't find relevant information in the context, provide general guidance
+about developer tools.
 Always be friendly and concise.`,
       };
 
