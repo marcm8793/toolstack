@@ -5,8 +5,10 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { pineconeClient } from "./config/pinecone";
 import { getOpenAIClient } from "./config/openai";
-import { RecordMetadata } from "@pinecone-database/pinecone";
-import { ScoredPineconeRecord } from "@pinecone-database/pinecone";
+import {
+  RecordMetadata,
+  ScoredPineconeRecord,
+} from "@pinecone-database/pinecone";
 import { getRootUrl } from "./config/root-url";
 
 function generateContext(
@@ -58,9 +60,11 @@ export const generateChatResponse = onCall(
     try {
       // Timing the embedding generation for monitoring
       console.time("Generate Embedding");
+      const cleanQuery = toolQuery.replace(/^"|"$/g, "");
       const embeddingResponse = await getOpenAIClient().embeddings.create({
         model: "text-embedding-3-small",
-        input: toolQuery,
+        input: `${cleanQuery} ${cleanQuery.toLowerCase()}
+        ${cleanQuery.toUpperCase()}}`,
         dimensions: 1536,
       });
       console.timeEnd("Generate Embedding");
@@ -86,6 +90,9 @@ export const generateChatResponse = onCall(
         discovering developer tools.
 Use the following context about tools to answer questions:
 ${context}
+
+When users mention tool categories, ecosystems, or tags, treat uppercase and
+lowercase versions as equivalent (e.g., "IDE" and "ide" mean the same thing).
 
 Whenever you propose a developer tool, please include its website link
 provided in the context. Prioritize the information provided in the context.
