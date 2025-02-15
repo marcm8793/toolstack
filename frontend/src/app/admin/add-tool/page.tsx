@@ -18,6 +18,7 @@ import {
   doc,
   DocumentReference,
   getDocs,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
@@ -327,6 +328,8 @@ const AddToolPage = () => {
         github_stars: trimmedData.noGithubRepo
           ? null
           : trimmedData.github_stars,
+        created_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
       };
 
       await addNewTool(toolData);

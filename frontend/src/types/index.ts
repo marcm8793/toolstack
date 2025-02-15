@@ -12,6 +12,8 @@ export interface DevTool {
   name: string;
   website_url: string;
   like_count: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface DevToolsState {
