@@ -60,12 +60,10 @@ export async function generateMetadata(
   }
 }
 
-export default async function ToolDetails({
-  params,
-}: {
-  params: { slug: string };
+export default async function ToolDetails(params: {
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug } = await params.params;
 
   return (
     <div className="md:container mx-auto py-10 px-4 sm:px-6 lg:px-8">
