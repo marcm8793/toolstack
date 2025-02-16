@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string }>;
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export async function generateMetadata(
@@ -60,10 +60,8 @@ export async function generateMetadata(
   }
 }
 
-export default async function ToolDetails(params: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params.params;
+export default async function ToolDetails({ params }: Props) {
+  const { slug } = await params;
 
   return (
     <div className="md:container mx-auto py-10 px-4 sm:px-6 lg:px-8">
