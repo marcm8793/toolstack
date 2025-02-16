@@ -8,7 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
