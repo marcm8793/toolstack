@@ -63,9 +63,10 @@ export async function generateMetadata(
 export default async function ToolDetails({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
   const { slug } = await params;
+
   return (
     <div className="md:container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <Suspense fallback={<ToolDetailsSkeleton />}>
