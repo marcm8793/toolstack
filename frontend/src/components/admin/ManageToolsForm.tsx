@@ -23,6 +23,7 @@ import {
   query,
   where,
   getDoc,
+  Timestamp,
 } from "firebase/firestore";
 import {
   deleteObject,
@@ -145,6 +146,7 @@ const ManageToolsForm = () => {
         ecosystem: doc(db, "ecosystems", data.ecosystem),
         github_link: data.noGithubRepo ? null : data.github_link,
         github_stars: data.noGithubRepo ? null : Number(data.github_stars),
+        updated_at: Timestamp.now(),
       });
 
       toast({
