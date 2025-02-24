@@ -4,6 +4,7 @@ import ToolDetailsSkeleton from "@/components/skeletons/ToolDetailsSkeleton";
 import { Metadata, ResolvingMetadata } from "next";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,15 @@ export async function generateMetadata(
         title: "Tool Not Found - ToolStack",
         description: "The requested tool could not be found.",
       };
+    }
+
+    const correctSlug = `${id}-${encodeURIComponent(
+      tool.name.toLowerCase().replace(/\s+/g, "-")
+    )}`;
+
+    // Redirect if the slug does not match the canonical slug
+    if (slug !== correctSlug) {
+      redirect(`/tools/${correctSlug}`);
     }
 
     return {

@@ -49,16 +49,6 @@ export function ToolDetailsClient({ slug }: ToolDetailsClientProps) {
         const toolData = { id: toolDoc.id, ...toolDoc.data() } as DevTool;
         setTool(toolData);
 
-        // Generate the correct slug
-        const correctSlug = `${id}-${encodeURIComponent(
-          toolData.name.toLowerCase().replace(/\s+/g, "-")
-        )}`;
-
-        // If the slug in the URL doesn't match the correct slug, update the URL
-        if (slug !== correctSlug) {
-          router.push(`/tools/${correctSlug}`);
-        }
-
         // Fetch category
         if (toolData.category) {
           const categoryDoc = await getDoc(toolData.category);
