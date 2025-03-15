@@ -153,7 +153,7 @@ const AddToolPage = () => {
     setIsGenerating(true);
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o-search-preview",
         messages: [
           {
             role: "system",
@@ -165,6 +165,9 @@ const AddToolPage = () => {
             content: `Analyze the developer tool by reading the website URL at${websiteUrl}. Provide a long and precise description and 10 relevant tags or keywords. Format your response as instructed. Read the URL before providing the description and tags.`,
           },
         ],
+        web_search_options: {
+          search_context_size: "high",
+        },
       });
 
       const aiResponse = response.choices[0].message.content;
