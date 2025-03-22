@@ -278,48 +278,56 @@ const ManageToolsForm = () => {
           {errors.description && (
             <p className="text-red-500">{errors.description.message}</p>
           )}
-          <Controller
-            name="category"
-            control={control}
-            render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.category && (
-            <p className="text-red-500">{errors.category.message}</p>
-          )}
-          <Controller
-            name="ecosystem"
-            control={control}
-            render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an ecosystem" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ecosystems.map((ecosystem) => (
-                    <SelectItem key={ecosystem.id} value={ecosystem.id}>
-                      {ecosystem.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.ecosystem && (
-            <p className="text-red-500">{errors.ecosystem.message}</p>
-          )}
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.category && (
+                <p className="text-red-500">{errors.category.message}</p>
+              )}
+            </div>
+            <div className="flex-1">
+              <Controller
+                name="ecosystem"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an ecosystem" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ecosystems.map((ecosystem) => (
+                        <SelectItem key={ecosystem.id} value={ecosystem.id}>
+                          {ecosystem.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.ecosystem && (
+                <p className="text-red-500">{errors.ecosystem.message}</p>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center space-x-2">
             <Controller
               name="noGithubRepo"
@@ -343,23 +351,27 @@ const ManageToolsForm = () => {
             <Label htmlFor="noGithubRepo">No GitHub repo</Label>
           </div>
           {!noGithubRepo && (
-            <>
-              <Input {...register("github_link")} placeholder="GitHub Link" />
-              {errors.github_link && (
-                <p className="text-red-500">{errors.github_link.message}</p>
-              )}
-              <Input
-                {...register("github_stars", {
-                  setValueAs: (v) => (v === "" ? null : parseInt(v, 10)),
-                  valueAsNumber: true,
-                })}
-                type="number"
-                placeholder="GitHub Stars"
-              />
-              {errors.github_stars && (
-                <p className="text-red-500">{errors.github_stars.message}</p>
-              )}
-            </>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Input {...register("github_link")} placeholder="GitHub Link" />
+                {errors.github_link && (
+                  <p className="text-red-500">{errors.github_link.message}</p>
+                )}
+              </div>
+              <div className="flex-1">
+                <Input
+                  {...register("github_stars", {
+                    setValueAs: (v) => (v === "" ? null : parseInt(v, 10)),
+                    valueAsNumber: true,
+                  })}
+                  type="number"
+                  placeholder="GitHub Stars"
+                />
+                {errors.github_stars && (
+                  <p className="text-red-500">{errors.github_stars.message}</p>
+                )}
+              </div>
+            </div>
           )}
           <Input {...register("website_url")} placeholder="Website URL" />
           {errors.website_url && (
