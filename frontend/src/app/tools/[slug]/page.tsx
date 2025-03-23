@@ -46,19 +46,74 @@ export async function generateMetadata(
       redirect(`/tools/${correctSlug}`);
     }
 
+    // Get category name if it exists
+    let categoryName = "";
+    if (tool.category && tool.category.id) {
+      try {
+        const categoryDoc = await getDoc(
+          doc(db, "categories", tool.category.id)
+        );
+        if (categoryDoc.exists()) {
+          categoryName = categoryDoc.data().name || "";
+        }
+      } catch (error) {
+        console.error("Error fetching category:", error);
+      }
+    }
+
+    // Get ecosystem name if it exists
+    let ecosystemName = "";
+    if (tool.ecosystem && tool.ecosystem.id) {
+      try {
+        const ecosystemDoc = await getDoc(
+          doc(db, "ecosystems", tool.ecosystem.id)
+        );
+        if (ecosystemDoc.exists()) {
+          ecosystemName = ecosystemDoc.data().name || "";
+        }
+      } catch (error) {
+        console.error("Error fetching ecosystem:", error);
+      }
+    }
+
+    // Create dynamic OG Image URL
+    const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000";
+
+    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(
+      tool.name
+    )}&description=${encodeURIComponent(
+      tool.description
+    )}&logo=${encodeURIComponent(tool.logo_url)}&category=${encodeURIComponent(
+      categoryName
+    )}&ecosystem=${encodeURIComponent(
+      ecosystemName
+    )}&github_stars=${encodeURIComponent(
+      tool.github_stars ? tool.github_stars.toString() : ""
+    )}`;
+
     return {
       title: `${tool.name} - ToolStack`,
       description: tool.description,
       openGraph: {
         title: `${tool.name} - ToolStack`,
         description: tool.description,
-        images: [tool.logo_url, ...previousImages],
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: `${tool.name} - ToolStack`,
+          },
+          ...previousImages,
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: `${tool.name} - ToolStack`,
         description: tool.description,
-        images: [tool.logo_url],
+        images: [ogImageUrl],
       },
     };
   } catch (error) {

@@ -48,15 +48,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Tool URLs
   const toolUrls = tools.map((tool: DevTool) => {
+    const toolSlug = `${tool.id}-${encodeURIComponent(
+      tool.name.toLowerCase().replace(/\s+/g, "-")
+    )}`;
+
+    // Create dynamic OG Image URL for sitemap
+    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(
+      tool.name
+    )}&description=${encodeURIComponent(
+      tool.description
+    )}&logo=${encodeURIComponent(tool.logo_url)}&category=${encodeURIComponent(
+      typeof tool.category === "object" && tool.category !== null
+        ? (tool.category as { name?: string }).name || ""
+        : ""
+    )}&ecosystem=${encodeURIComponent(
+      typeof tool.ecosystem === "object" && tool.ecosystem !== null
+        ? (tool.ecosystem as { name?: string }).name || ""
+        : ""
+    )}&github_stars=${encodeURIComponent(
+      tool.github_stars ? tool.github_stars.toString() : ""
+    )}`;
+
     return {
-      url: `${baseUrl}/tools/${tool.id}-${encodeURIComponent(
-        tool.name.toLowerCase().replace(/\s+/g, "-")
-      )}`,
+      url: `${baseUrl}/tools/${toolSlug}`,
       lastModified: new Date(tool.updated_at.seconds * 1000).toISOString(),
       changeFrequency: "monthly" as const,
       priority: 0.8,
       images: [
-        tool.logo_url
+        ogImageUrl
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
