@@ -7,6 +7,7 @@ import { Heart } from "lucide-react";
 import { User } from "@/types/index";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { generateToolSlug } from "@/lib/utils";
 
 interface ColumnsProps {
   categories: Category[];
@@ -29,14 +30,12 @@ export const columns = ({
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      //TODO: Fix this
-      // const id: string = row.original.id;
-      // const name: string = row.getValue("name");
       return (
         <div className="flex space-x-2 ">
           <Link
-            href={`/tools/${row.original.id}-${encodeURIComponent(
-              row.original.name.toLowerCase().replace(/\s+/g, "-")
+            href={`/tools/${generateToolSlug(
+              row.original.id,
+              row.original.name
             )}`}
             className="text-blue-500 hover:underline"
           >

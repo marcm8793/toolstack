@@ -8,6 +8,7 @@ import { CommandIcon, LinkIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchResponseHit } from "typesense/lib/Typesense/Documents";
+import { generateToolSlug } from "@/lib/utils";
 
 const typesenseClient = new Typesense.Client({
   nodes: [
@@ -87,7 +88,14 @@ const SearchBar: React.FC = () => {
       case "Enter":
         event.preventDefault();
         if (selectedIndex >= 0) {
-          router.push(`/tools/${results[selectedIndex].id}`);
+          console.log("Selected result:", results[selectedIndex]);
+
+          const selectedTool = results[selectedIndex];
+
+          const fullSlug = generateToolSlug(selectedTool.id, selectedTool.name);
+          console.log("Generated slug:", fullSlug);
+
+          router.push(`/tools/${fullSlug}`);
           setIsOpen(false);
           handleReset();
         }

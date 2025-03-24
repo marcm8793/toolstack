@@ -5,6 +5,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { redirect } from "next/navigation";
+import { generateToolSlug, getToolIdFromSlug } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export async function generateMetadata(
   const { slug } = await params;
 
   // Get the tool ID from the slug
-  const [id] = slug.split("-");
+  const id = getToolIdFromSlug(slug);
 
   try {
     // Fetch tool data from Firestore
@@ -37,13 +38,12 @@ export async function generateMetadata(
       };
     }
 
-    // Fix: Use a more robust method to create slugs
-    const correctSlug = `${id}-${tool.name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "") // Remove special chars except whitespace and dash
-      .replace(/\s+/g, "-") // Replace spaces with dashes
-      .replace(/-+/g, "-") // Replace multiple dashes with single dash
-      .trim()}`; // Trim leading/trailing whitespace
+    // Generate the canonical slug
+    const correctSlug = generateToolSlug(id, tool.name);
+
+    // Debug logs
+    console.log("Current slug:", slug);
+    console.log("Canonical slug:", correctSlug);
 
     // Redirect if the slug does not match the canonical slug
     if (slug !== correctSlug) {

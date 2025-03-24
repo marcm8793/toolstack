@@ -23,6 +23,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import ToolDetailsSkeleton from "../skeletons/ToolDetailsSkeleton";
+import { getToolIdFromSlug } from "@/lib/utils";
 
 interface ToolDetailsClientProps {
   slug: string;
@@ -42,7 +43,7 @@ export function ToolDetailsClient({ slug }: ToolDetailsClientProps) {
 
   const fetchToolDetails = useCallback(async () => {
     try {
-      const [id] = slug.split("-");
+      const id = getToolIdFromSlug(slug);
       const toolDoc = await getDoc(doc(db, "tools", id));
 
       if (toolDoc.exists()) {
