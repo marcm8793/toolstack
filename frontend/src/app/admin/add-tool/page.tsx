@@ -158,11 +158,17 @@ const AddToolPage = () => {
           {
             role: "system",
             content:
-              "You are a web developer that analyzes developer tools and provides descriptions and relevant tags for each tool. Always format your response with '### Description:' followed by the description, and '### Tags:' followed by a numbered list of tags.",
+              "You are a web developer that analyzes developer tools and provides descriptions and relevant tags. Your response should be simple plain text with exactly two parts: (1) a concise paragraph description with no formatting, and (2) exactly 10 comma-separated tags on a new line. Do not use any headers, bullets, or other formatting.",
           },
           {
             role: "user",
-            content: `Analyze the developer tool by reading the website URL at${websiteUrl}. Provide a long and precise description and 10 relevant tags or keywords. Format your response as instructed. Read the URL before providing the description and tags.`,
+            content: `Analyze the developer tool at ${websiteUrl}. Provide:
+1. A single paragraph description (no formatting, no bullet points, no headers)
+2. Exactly 10 relevant tags separated by commas on a separate line after the description
+
+Format example:
+This is the description in a single paragraph with no formatting.
+tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10`,
           },
         ],
         web_search_options: {
@@ -173,19 +179,27 @@ const AddToolPage = () => {
       const aiResponse = response.choices[0].message.content;
       console.log("AI Response:", aiResponse);
 
-      // Extract description and tags
-      const descriptionMatch = aiResponse?.match(
-        /### Description:([\s\S]*?)(?=### Tags:|$)/i
-      );
-      const tagsMatch = aiResponse?.match(/### Tags:([\s\S]*)/i);
+      // Split the response into lines
+      const lines =
+        aiResponse?.split("\n").filter((line) => line.trim() !== "") || [];
 
-      const description = descriptionMatch ? descriptionMatch[1].trim() : "";
-      const tags = tagsMatch
-        ? tagsMatch[1]
-            .split(/\n/)
-            .map((tag: string) => tag.replace(/^\d+\.\s*/, "").trim())
-            .filter((tag: string) => tag !== "")
-        : [];
+      // First part should be the description (single paragraph)
+      let description = "";
+      let tags: string[] = [];
+
+      if (lines.length >= 1) {
+        // The first non-empty line contains the description
+        description = lines[0].trim();
+
+        // The last line should contain comma-separated tags
+        if (lines.length >= 2) {
+          const lastLine = lines[lines.length - 1].trim();
+          tags = lastLine
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag !== "");
+        }
+      }
 
       console.log("Extracted Description:", description);
       console.log("Extracted Tags:", tags);
@@ -194,18 +208,20 @@ const AddToolPage = () => {
         setValue("description", description);
       }
       if (tags.length > 0) {
-        setNewBadge(tags.join(", ")); // Put tags in the input field
-        // Add dashs between each word in each tag
-        const tagsWithDashes = tags.map((tag: string) =>
-          tag.replace(/ /g, "-")
+        // Display raw tags in the input field
+        setNewBadge(tags.join(", "));
+
+        // Convert tags to kebab-case format
+        const formattedTags = tags.map((tag: string) =>
+          tag.toLowerCase().replace(/\s+/g, "-")
         );
-        setValue("badges", tagsWithDashes);
+        setValue("badges", formattedTags);
       }
 
       toast({
         title: "Success",
         description:
-          "AI-generated content added successfully. Review the description and suggested badges.",
+          "AI-generated plain text added successfully. Review the description and suggested tags.",
       });
     } catch (error) {
       console.error("Error generating AI content:", error);
@@ -584,6 +600,10 @@ const AddToolPage = () => {
               </Button>
             </div>
           </div>
+          <p className="text-sm text-gray-500 mt-1">
+            AI will generate a single paragraph description and exactly 10
+            comma-separated tags. No formatting will be applied.
+          </p>
           <div>
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -622,8 +642,8 @@ const AddToolPage = () => {
             </Button>
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            AI-suggested badges will appear here. Review and click &apos;Add
-            Badges&apos; to confirm.
+            AI-suggested tags (exactly 10) will appear here. Click &apos;Add
+            Badges&apos; to add them to your tool.
           </p>
           <div className="flex flex-wrap gap-2 mt-2">
             {watch("badges").map((badge, index) => (

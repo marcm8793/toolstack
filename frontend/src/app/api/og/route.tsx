@@ -66,7 +66,6 @@ export async function GET(request: NextRequest) {
               height: "50%",
               background:
                 "radial-gradient(circle at top right, rgba(59, 130, 246, 0.3), transparent 70%)",
-              zIndex: 1,
             }}
           />
 

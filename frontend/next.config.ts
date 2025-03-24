@@ -9,9 +9,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ["@vercel/og"],
-  },
+
+  serverExternalPackages: ["@vercel/og"],
 };
 
 export default nextConfig;
