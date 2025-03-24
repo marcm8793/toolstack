@@ -37,9 +37,13 @@ export async function generateMetadata(
       };
     }
 
-    const correctSlug = `${id}-${encodeURIComponent(
-      tool.name.toLowerCase().replace(/\s+/g, "-")
-    )}`;
+    // Fix: Use a more robust method to create slugs
+    const correctSlug = `${id}-${tool.name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "") // Remove special chars except whitespace and dash
+      .replace(/\s+/g, "-") // Replace spaces with dashes
+      .replace(/-+/g, "-") // Replace multiple dashes with single dash
+      .trim()}`; // Trim leading/trailing whitespace
 
     // Redirect if the slug does not match the canonical slug
     if (slug !== correctSlug) {

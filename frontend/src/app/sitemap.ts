@@ -48,9 +48,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Tool URLs
   const toolUrls = tools.map((tool: DevTool) => {
-    const toolSlug = `${tool.id}-${encodeURIComponent(
-      tool.name.toLowerCase().replace(/\s+/g, "-")
-    )}`;
+    const toolSlug = `${tool.id}-${tool.name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim()}`;
 
     // Create dynamic OG Image URL for sitemap
     const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(
