@@ -121,6 +121,10 @@ export const ChatBot = () => {
                 <h2 className="text-lg font-semibold">
                   Please sign in to use the chatbot
                 </h2>
+                <p className="text-sm text-gray-500">
+                  Ask about developer tools and get personalized recommendations
+                  !
+                </p>
                 <Button
                   onClick={() => {
                     setIsOpen(false);
