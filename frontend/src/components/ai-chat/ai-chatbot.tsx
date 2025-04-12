@@ -10,6 +10,8 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import { FaRobot } from "react-icons/fa";
+import ratelimit from "@/lib/ratelimit";
+import { headers } from "next/headers";
 
 interface Message {
   role: "user" | "assistant";
@@ -40,12 +42,21 @@ export const ChatBot = () => {
     e.preventDefault();
     if (!input.trim() || !user) return;
 
-    const userMessage = input.trim();
-    setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setIsLoading(true);
-
     try {
+      // Check rate limit
+      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
+      const { success } = await ratelimit.limit(ip);
+
+      if (!success) {
+        router.push("/too-fast");
+        return;
+      }
+
+      const userMessage = input.trim();
+      setInput("");
+      setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+      setIsLoading(true);
+
       const result = await generateResponse({
         messages: [...messages, { role: "user", content: userMessage }],
         toolQuery: userMessage,

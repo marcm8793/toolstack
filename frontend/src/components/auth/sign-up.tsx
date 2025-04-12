@@ -21,6 +21,8 @@ import { signUpSchema } from "@/validation/authSchema";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SignUpFormData } from "@/validation/authSchema";
+import ratelimit from "@/lib/ratelimit";
+import { headers } from "next/headers";
 
 type SignUpFormProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -41,6 +43,15 @@ export function SignUpForm({ ...props }: SignUpFormProps) {
     setIsLoading(true);
 
     try {
+      // Check rate limit
+      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
+      const { success } = await ratelimit.limit(ip);
+
+      if (!success) {
+        router.push("/too-fast");
+        return;
+      }
+
       await createUserWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: "Success",
@@ -63,22 +74,31 @@ export function SignUpForm({ ...props }: SignUpFormProps) {
     setIsLoading(true);
     let provider;
 
-    switch (providerName) {
-      case "google":
-        provider = new GoogleAuthProvider();
-        break;
-      case "github":
-        provider = new GithubAuthProvider();
-        break;
-      case "apple":
-        provider = new OAuthProvider("apple.com");
-        break;
-      default:
-        setIsLoading(false);
-        return;
-    }
-
     try {
+      // Check rate limit
+      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
+      const { success } = await ratelimit.limit(ip);
+
+      if (!success) {
+        router.push("/too-fast");
+        return;
+      }
+
+      switch (providerName) {
+        case "google":
+          provider = new GoogleAuthProvider();
+          break;
+        case "github":
+          provider = new GithubAuthProvider();
+          break;
+        case "apple":
+          provider = new OAuthProvider("apple.com");
+          break;
+        default:
+          setIsLoading(false);
+          return;
+      }
+
       await signInWithPopup(auth, provider);
       toast({
         title: "Success",
