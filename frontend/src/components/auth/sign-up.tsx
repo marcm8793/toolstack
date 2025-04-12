@@ -21,8 +21,7 @@ import { signUpSchema } from "@/validation/authSchema";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SignUpFormData } from "@/validation/authSchema";
-import ratelimit from "@/lib/ratelimit";
-import { headers } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit-utils";
 
 type SignUpFormProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -44,9 +43,7 @@ export function SignUpForm({ ...props }: SignUpFormProps) {
 
     try {
       // Check rate limit
-      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
-      const { success } = await ratelimit.limit(ip);
-
+      const success = await checkRateLimit();
       if (!success) {
         router.push("/too-fast");
         return;
@@ -76,9 +73,7 @@ export function SignUpForm({ ...props }: SignUpFormProps) {
 
     try {
       // Check rate limit
-      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
-      const { success } = await ratelimit.limit(ip);
-
+      const success = await checkRateLimit();
       if (!success) {
         router.push("/too-fast");
         return;

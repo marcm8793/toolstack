@@ -17,8 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
-import ratelimit from "@/lib/ratelimit";
-import { headers } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit-utils";
 
 type SignInFormProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -35,9 +34,7 @@ export function SignInForm({ className, ...props }: SignInFormProps) {
 
     try {
       // Check rate limit
-      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
-      const { success } = await ratelimit.limit(ip);
-
+      const success = await checkRateLimit();
       if (!success) {
         router.push("/too-fast");
         return;
@@ -67,9 +64,7 @@ export function SignInForm({ className, ...props }: SignInFormProps) {
 
     try {
       // Check rate limit
-      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
-      const { success } = await ratelimit.limit(ip);
-
+      const success = await checkRateLimit();
       if (!success) {
         router.push("/too-fast");
         return;

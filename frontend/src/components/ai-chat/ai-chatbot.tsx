@@ -10,8 +10,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import { FaRobot } from "react-icons/fa";
-import ratelimit from "@/lib/ratelimit";
-import { headers } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit-utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -44,9 +43,7 @@ export const ChatBot = () => {
 
     try {
       // Check rate limit
-      const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
-      const { success } = await ratelimit.limit(ip);
-
+      const success = await checkRateLimit();
       if (!success) {
         router.push("/too-fast");
         return;
