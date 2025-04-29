@@ -158,15 +158,17 @@ const AddToolPage = () => {
           {
             role: "system",
             content:
-              "You are a web developer that analyzes developer tools and provides descriptions and relevant tags. Your response should be simple plain text with exactly two parts: (1) a concise paragraph description with no formatting, and (2) exactly 10 comma-separated tags on a new line. Do not use any headers, bullets, or other formatting.",
+              "You are a web developer that analyzes developer tools and provides descriptions and relevant tags. Your response should be simple plain text with exactly three parts: (1) a concise tool name, (2) a concise paragraph description with no formatting, and (3) exactly 10 comma-separated tags on a new line. Do not use any headers, bullets, or other formatting.",
           },
           {
             role: "user",
             content: `Analyze the developer tool at ${websiteUrl}. Provide:
-1. A single paragraph description (no formatting, no bullet points, no headers)
-2. Exactly 10 relevant tags separated by commas on a separate line after the description
+1. A concise tool name (just the name, no additional text)
+2. A single paragraph description (no formatting, no bullet points, no headers)
+3. Exactly 10 relevant tags separated by commas on a separate line after the description
 
 Format example:
+ToolName
 This is the description in a single paragraph with no formatting.
 tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10`,
           },
@@ -183,30 +185,36 @@ tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10`,
       const lines =
         aiResponse?.split("\n").filter((line) => line.trim() !== "") || [];
 
-      // First part should be the description (single paragraph)
+      // First line should be the tool name
+      let toolName = "";
       let description = "";
       let tags: string[] = [];
 
       if (lines.length >= 1) {
-        // The first non-empty line contains the description
-        description = lines[0].trim();
+        // The first non-empty line contains the tool name
+        toolName = lines[0].trim();
+        setValue("name", toolName);
 
-        // The last line should contain comma-separated tags
+        // The second line contains the description
         if (lines.length >= 2) {
-          const lastLine = lines[lines.length - 1].trim();
-          tags = lastLine
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag !== "");
+          description = lines[1].trim();
+          setValue("description", description);
+
+          // The last line should contain comma-separated tags
+          if (lines.length >= 3) {
+            const lastLine = lines[lines.length - 1].trim();
+            tags = lastLine
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter((tag) => tag !== "");
+          }
         }
       }
 
+      console.log("Extracted Tool Name:", toolName);
       console.log("Extracted Description:", description);
       console.log("Extracted Tags:", tags);
 
-      if (description) {
-        setValue("description", description);
-      }
       if (tags.length > 0) {
         // Display raw tags in the input field
         setNewBadge(tags.join(", "));
@@ -221,7 +229,7 @@ tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10`,
       toast({
         title: "Success",
         description:
-          "AI-generated plain text added successfully. Review the description and suggested tags.",
+          "AI-generated content added successfully. Review the tool name, description and suggested tags.",
       });
     } catch (error) {
       console.error("Error generating AI content:", error);
