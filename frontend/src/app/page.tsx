@@ -43,12 +43,12 @@ const HomePage = () => {
             <FeatureCard
               icon={Search}
               title="Discover"
-              description="Find the best developer tools curated just for you"
+              description="Find the best developer tools curated just for you!"
             />
             <FeatureCard
               icon={Code}
               title="Compare"
-              description="Compare features and choose the right tool for your needs"
+              description="Compare features and choose the right tool for your needs!"
             />
             <FeatureCard
               icon={Zap}
