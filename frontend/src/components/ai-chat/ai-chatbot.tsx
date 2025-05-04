@@ -39,9 +39,10 @@ export const ChatBot = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !user) return;
+    if (!input.trim() || !user || isLoading) return;
 
     try {
+      setIsLoading(true);
       // Check rate limit
       const success = await checkRateLimit();
       if (!success) {
@@ -52,7 +53,6 @@ export const ChatBot = () => {
       const userMessage = input.trim();
       setInput("");
       setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-      setIsLoading(true);
 
       const result = await generateResponse({
         messages: [...messages, { role: "user", content: userMessage }],
