@@ -62,10 +62,10 @@ const Feedback = () => {
       setIsLoading(true);
       try {
         const result = await emailjs.sendForm(
-          process.env.VITE_EMAILJS_SERVICE_ID!,
-          process.env.VITE_EMAILJS_TEMPLATE_ID!,
+          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+          process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
           form.current!,
-          process.env.VITE_EMAILJS_PUBLIC_KEY!
+          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
         );
         console.log(result.text);
         toast({
