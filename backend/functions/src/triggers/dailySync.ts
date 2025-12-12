@@ -4,10 +4,10 @@ import { logger } from "firebase-functions";
 import { HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 
-export const triggerDailySync = onSchedule(
+export const triggerMonthlySync = onSchedule(
   {
     timeZone: "Europe/Paris",
-    schedule: "0 12 * * *",
+    schedule: "0 12 1 * *",
     secrets: ["PROJECT_URL"],
   },
   async () => {

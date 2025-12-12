@@ -3,7 +3,7 @@ import * as admin from "firebase-admin";
 import { syncToolsToTypesense } from "./triggers/syncToolsToTypesense";
 import { syncToolsToPinecone } from "./triggers/syncToolsToPinecone";
 import { fullSyncToolsToTypesense } from "./triggers/fullSyncToolsToTypesense";
-import { triggerDailySync } from "./triggers/dailySync";
+import { triggerMonthlySync } from "./triggers/dailySync";
 import { generateChatResponse } from "./chatbot";
 import { fullSyncToolsToPinecone } from "./triggers/fullSyncToolsToPinecone";
 
@@ -13,6 +13,6 @@ export {
   fullSyncToolsToTypesense,
   syncToolsToPinecone,
   syncToolsToTypesense,
-  triggerDailySync,
+  triggerMonthlySync,
   generateChatResponse,
 };
