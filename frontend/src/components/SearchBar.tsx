@@ -1,31 +1,24 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Typesense from "typesense";
-import { DevTool } from "@/types";
-import { Command } from "./ui/command";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { CommandIcon, LinkIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { SearchResponseHit } from "typesense/lib/Typesense/Documents";
 import { generateToolSlug } from "@/lib/utils";
 
-const typesenseClient = new Typesense.Client({
-  nodes: [
-    {
-      host: process.env.NEXT_PUBLIC_TYPESENSE_HOST!,
-      port: parseInt(process.env.NEXT_PUBLIC_TYPESENSE_PORT!, 10),
-      protocol: process.env.NEXT_PUBLIC_TYPESENSE_PROTOCOL!,
-    },
-  ],
-  apiKey: process.env.NEXT_PUBLIC_TYPESENSE_API_KEY!,
-  connectionTimeoutSeconds: 2,
-});
+interface SearchableTool {
+  id: string;
+  name: string;
+  category: string;
+  badges: string[];
+}
+
+let cachedTools: SearchableTool[] | null = null;
 
 const SearchBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<DevTool[]>([]);
+  const [results, setResults] = useState<SearchableTool[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isMac, setIsMac] = useState(false);
@@ -67,6 +60,26 @@ const SearchBar: React.FC = () => {
     };
   }, []);
 
+  const loadTools = useCallback(async (): Promise<SearchableTool[]> => {
+    if (cachedTools) return cachedTools;
+    try {
+      const response = await fetch("/api/tools");
+      const data = await response.json();
+      cachedTools = data.tools.map(
+        (tool: { id: string; name: string; category?: { name?: string }; badges?: string[] }) => ({
+          id: tool.id,
+          name: tool.name,
+          category: tool.category?.name ?? "",
+          badges: tool.badges ?? [],
+        })
+      );
+      return cachedTools!;
+    } catch (error) {
+      console.error("Error loading tools for search:", error);
+      return [];
+    }
+  }, []);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || results.length === 0) return;
 
@@ -88,13 +101,8 @@ const SearchBar: React.FC = () => {
       case "Enter":
         event.preventDefault();
         if (selectedIndex >= 0) {
-          console.log("Selected result:", results[selectedIndex]);
-
           const selectedTool = results[selectedIndex];
-
           const fullSlug = generateToolSlug(selectedTool.id, selectedTool.name);
-          console.log("Generated slug:", fullSlug);
-
           router.push(`/tools/${fullSlug}`);
           setIsOpen(false);
           handleReset();
@@ -107,24 +115,24 @@ const SearchBar: React.FC = () => {
     setQuery(searchQuery);
     if (searchQuery.length > 0) {
       try {
-        const searchResults = await typesenseClient
-          .collections("dev_tools")
-          .documents()
-          .search({
-            q: searchQuery,
-            query_by: "name,category,badges",
-            per_page: 10,
-          });
-        const newResults =
-          (searchResults.hits as SearchResponseHit<DevTool>[])?.map(
-            (hit) => hit.document
-          ) || [];
+        const tools = await loadTools();
+        const lowerQuery = searchQuery.toLowerCase();
+        const filtered = tools
+          .filter(
+            (tool) =>
+              tool.name.toLowerCase().includes(lowerQuery) ||
+              tool.category.toLowerCase().includes(lowerQuery) ||
+              tool.badges.some((badge) =>
+                badge.toLowerCase().includes(lowerQuery)
+              )
+          )
+          .slice(0, 10);
 
-        setResults(newResults);
+        setResults(filtered);
         setIsOpen(true);
-        setSelectedIndex(newResults.length > 0 ? 0 : -1); // Set to 0 if there are results
+        setSelectedIndex(filtered.length > 0 ? 0 : -1);
       } catch (error) {
-        console.error("Error searching Typesense:", error);
+        console.error("Error searching tools:", error);
         setResults([]);
       }
     } else {
@@ -197,7 +205,7 @@ const SearchBar: React.FC = () => {
       </div>
       {isOpen && results.length > 0 && (
         <div className="absolute w-full mt-1 border rounded-md shadow-lg bg-white dark:bg-gray-800 z-50">
-          <Command className="w-full max-h-[300px] overflow-y-auto">
+          <div className="w-full max-h-[300px] overflow-y-auto">
             <ul>
               {results.map((result, index) => (
                 <li key={result.id} className="border-b last:border-b-0">
@@ -218,7 +226,7 @@ const SearchBar: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </Command>
+          </div>
         </div>
       )}
     </div>

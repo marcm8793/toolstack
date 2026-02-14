@@ -15,7 +15,6 @@ export const triggerMonthlySync = onSchedule(
       const projectUrl = defineSecret("PROJECT_URL");
 
       const syncUrls = [
-        `https://fullsynctoolstotypesense-${projectUrl.value()}`,
         `https://fullsynctoolstopinecone-${projectUrl.value()}`,
       ];
 

@@ -26,12 +26,6 @@ firebase functions:secrets:set SECRET_NAME
 firebase functions:secrets:access SECRET_NAME
 ```
 
-### Run the script to populate the data in typesense after init
-
-```bash
-npx ts-node functions/src/scripts/scriptTypesensedata.ts
-```
-
 ### Deploy functions:
 
 ```bash

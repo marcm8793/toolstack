@@ -1,8 +1,6 @@
 /* eslint-disable object-curly-spacing */
 import * as admin from "firebase-admin";
-import { syncToolsToTypesense } from "./triggers/syncToolsToTypesense";
 import { syncToolsToPinecone } from "./triggers/syncToolsToPinecone";
-import { fullSyncToolsToTypesense } from "./triggers/fullSyncToolsToTypesense";
 import { triggerMonthlySync } from "./triggers/dailySync";
 import { generateChatResponse } from "./chatbot";
 import { fullSyncToolsToPinecone } from "./triggers/fullSyncToolsToPinecone";
@@ -10,9 +8,7 @@ import { fullSyncToolsToPinecone } from "./triggers/fullSyncToolsToPinecone";
 admin.initializeApp();
 export {
   fullSyncToolsToPinecone,
-  fullSyncToolsToTypesense,
   syncToolsToPinecone,
-  syncToolsToTypesense,
   triggerMonthlySync,
   generateChatResponse,
 };
